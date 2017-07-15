@@ -1,0 +1,8 @@
+package: github.com/Azure-Samples/azure-cosmos-db-mongodb-golang-getting-started
+import:
+- package: github.com/Azure/go-autorest
+  subpackages:
+  - autorest/utils
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
