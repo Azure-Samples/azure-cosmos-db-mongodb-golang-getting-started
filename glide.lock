@@ -1,0 +1,21 @@
+hash: be0bc42711854503efd6f60317cf95cbc064966d90599570a7b6ada4e93d7b45
+updated: 2017-07-14T17:56:17.3447325-07:00
+imports:
+- name: github.com/Azure/go-autorest
+  version: 5b4b9cc27e8f7150d75a133d74b176a067b7e7b6
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+  - autorest/date
+  - autorest/utils
+- name: github.com/dgrijalva/jwt-go
+  version: a539ee1a749a2b895533f979515ac7e6e0f5b650
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
+testImports: []
