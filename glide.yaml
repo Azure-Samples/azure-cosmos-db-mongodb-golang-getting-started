@@ -1,4 +1,4 @@
-package: github.com/Azure-Samples/azure-cosmos-db-mongodb-golang-getting-started
+package: github.com/Azure-Samples/azure-cosmos-db-for-mongodb-api-golang-getting-started
 import:
 - package: github.com/Azure/go-autorest
   subpackages:
