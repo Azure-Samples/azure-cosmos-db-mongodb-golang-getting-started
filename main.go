@@ -34,7 +34,7 @@ type Package struct {
 }
 
 func main() {
-	// DialInfo holds options for establishing a session with a MongoDB cluster.
+	// DialInfo holds options for establishing a session with Azure Cosmos DB for MongoDB API account.
 	dialInfo := &mgo.DialInfo{
 		Addrs:    []string{fmt.Sprintf("%s.documents.azure.com:10255", database)}, // Get HOST + PORT
 		Timeout:  60 * time.Second,
@@ -47,11 +47,10 @@ func main() {
 	}
 
 	// Create a session which maintains a pool of socket connections
-	// to our MongoDB.
 	session, err := mgo.DialWithInfo(dialInfo)
 
 	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
+		fmt.Printf("Can't connect, go error %v\n", err)
 		os.Exit(1)
 	}
 
