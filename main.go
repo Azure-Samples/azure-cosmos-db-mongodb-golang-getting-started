@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/utils"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 )
@@ -19,8 +18,13 @@ var (
 )
 
 func init() {
-	database = utils.GetEnvVarOrExit("AZURE_DATABASE")
-	password = utils.GetEnvVarOrExit("AZURE_DATABASE_PASSWORD")
+	database = os.Getenv("AZURE_DATABASE")
+	password = os.Getenv("AZURE_DATABASE_PASSWORD")
+
+	if database == "" || password == "" {
+		fmt.Printf("AZURE_DATABASE environment variable must be the name of the Cosmos DB database and AZURE_DATABASE_PASSWORD must be the primary password for that database.")
+		os.Exit(1)
+	}
 }
 
 // Package represents a document in the collection
