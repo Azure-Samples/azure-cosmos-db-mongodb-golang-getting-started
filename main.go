@@ -1,15 +1,15 @@
 package main
 
 import (
-	"crypto/tls"
+	"context"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"time"
 
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -27,85 +27,64 @@ func init() {
 	}
 }
 
-// Package represents a document in the collection
-type Package struct {
-	Id            bson.ObjectId `bson:"_id,omitempty"`
-	FullName      string
-	Description   string
-	StarsCount    int
-	ForksCount    int
-	LastUpdatedBy string
-}
-
 func main() {
-	// DialInfo holds options for establishing a session with Azure Cosmos DB for MongoDB API account.
-	dialInfo := &mgo.DialInfo{
-		Addrs:    []string{fmt.Sprintf("%s.documents.azure.com:10255", database)}, // Get HOST + PORT
-		Timeout:  60 * time.Second,
-		Database: database, // It can be anything
-		Username: database, // Username
-		Password: password, // PASSWORD
-		DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
-			return tls.Dial("tcp", addr.String(), &tls.Config{})
+	uri := fmt.Sprintf("mongodb://%s:%s@%s.documents.azure.com:10255/%s?ssl=true", database, password, database, database)
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+	if err != nil {
+		log.Fatalf("Can't create mongodb client, go error %v\n", err)
+	}
+
+	// Set a 5s timeout and ensure that it is called
+	context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Establish a connection to Cosmos DB
+	err = client.Connect(context)
+	if err != nil {
+		log.Fatalf("Can't connect to mongodb server %s, go error %v\n", uri, err)
+	}
+
+	// Retrieve a reference to the package collection in Cosmos DB
+	collection := client.Database(database).Collection("package")
+
+	// Write a single document into Cosmos DB
+	var insertResult *mongo.InsertOneResult
+	insertResult, err = collection.InsertOne(context,
+		bson.M{
+			"FullName":      "react",
+			"Description":   "A framework for building native apps with React.",
+			"ForksCount":    11392,
+			"StarsCount":    48794,
+			"LastUpdatedBy": "shergin",
+		},
+	)
+	if err != nil {
+		log.Fatalf("Failed to insert record: %v\n", err)
+	}
+
+	id := insertResult.InsertedID
+	fmt.Printf("Inserted record id: %d\n", id)
+
+	// Update document
+	var updateResult *mongo.UpdateResult
+	filter := bson.M{"_id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"fullname": "react-native",
 		},
 	}
-
-	// Create a session which maintains a pool of socket connections
-	session, err := mgo.DialWithInfo(dialInfo)
-
+	updateResult, err = collection.UpdateOne(context, filter, update)
 	if err != nil {
-		fmt.Printf("Can't connect, go error %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error updating record %v\n", err)
 	}
+	fmt.Printf("Updated this many records: %d\n", updateResult.ModifiedCount)
 
-	defer session.Close()
-
-	// SetSafe changes the session safety mode.
-	// If the safe parameter is nil, the session is put in unsafe mode, and writes become fire-and-forget,
-	// without error checking. The unsafe mode is faster since operations won't hold on waiting for a confirmation.
-	// http://godoc.org/labix.org/v2/mgo#Session.SetMode.
-	session.SetSafe(&mgo.Safe{})
-
-	// get collection
-	collection := session.DB(database).C("package")
-
-	// insert Document in collection
-	err = collection.Insert(&Package{
-		FullName:      "react",
-		Description:   "A framework for building native apps with React.",
-		ForksCount:    11392,
-		StarsCount:    48794,
-		LastUpdatedBy: "shergin",
-	})
-
+	// Delete document by id
+	var deleteResult *mongo.DeleteResult
+	deleteResult, err = collection.DeleteOne(context, filter)
 	if err != nil {
-		log.Fatal("Problem inserting data: ", err)
-		return
+		log.Fatalf("Error deleting record: %v\n", err)
 	}
-
-	// Get Document from collection
-	result := Package{}
-	err = collection.Find(bson.M{"fullname": "react"}).One(&result)
-	if err != nil {
-		log.Fatal("Error finding record: ", err)
-		return
-	}
-
-	fmt.Println("Description:", result.Description)
-
-	// update document
-	updateQuery := bson.M{"_id": result.Id}
-	change := bson.M{"$set": bson.M{"fullname": "react-native"}}
-	err = collection.Update(updateQuery, change)
-	if err != nil {
-		log.Fatal("Error updating record: ", err)
-		return
-	}
-
-	// delete document
-	err = collection.Remove(updateQuery)
-	if err != nil {
-		log.Fatal("Error deleting record: ", err)
-		return
-	}
+	fmt.Printf("Deleted this many records: %d\n", deleteResult.DeletedCount)
 }
