@@ -1,7 +1,11 @@
 ---
-services: cosmos-db
-platforms: go
-author: mimig1
+page_type: sample
+languages:
+- go
+products:
+- azure
+description: "This sample shows how to use the Azure Cosmos DB for MongoDB API and the Go language (Golang) to create, retrieve, update, and delete a document in a collection."
+urlFragment: azure-cosmos-db-mongodb-golang-getting-started
 ---
 
 # Azure Cosmos DB: Build a Azure Cosmos DB for MongoDB API console app with Golang and the Azure portal
