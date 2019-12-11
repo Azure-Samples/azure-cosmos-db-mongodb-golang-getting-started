@@ -14,3 +14,9 @@
 .glide/
 
 /vendor
+
+# Ignore generated binary
+cosmosdb
+
+# Ignore vscode
+.vscode
